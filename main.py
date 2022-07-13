@@ -8,7 +8,12 @@ from linebot.exceptions import (
 )
 from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage,
+    RichMenu, RichMenuArea,
+    RichMenuBounds, RichMenuSize
 )
+
+from linebot.models.actions import PostbackAction
+
 import os
 
 app = Flask(__name__)
@@ -43,13 +48,44 @@ def callback():
         abort(400)
     return 'OK'
 
+#RichMenu
+rich_menu_to_create = RichMenu(
+    size = RichMenuSize(width=2500, height=1686),
+    selected = True,
+    name = 'richmenu',
+    chat_bar_text = 'メニュー',
+    areas=[
+        RichMenuArea(
+            bounds=RichMenuBounds(x=0, y=0, width=1273, height=868),
+            action=PostbackAction(data='renew')
+        ),
+        RichMenuArea(
+            bounds=RichMenuBounds(x=1278, y=0, width=1211, height=864),
+            action=PostbackAction(data='deadline')
+        ),
+        RichMenuArea(
+            bounds=RichMenuBounds(x=0, y=864, width=1268, height=818),
+            action=PostbackAction(data="not_submitted")
+        ),
+        RichMenuArea(
+            bounds=RichMenuBounds(x=1273, y=877, width=1227, height=805),
+            action=PostbackAction(data="forget")
+        )
+    ]
+)
+
+richMenuId = line_bot_api.create_rich_menu(rich_menu=rich_menu_to_create)
+line_bot_api.set_default_rich_menu(richMenuId)
+
 
 #以下でWebhookから送られてきたイベントをどのように処理するかを記述する
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=event.message.text+'test'))
+        TextSendMessage(text=event.message.text))
+
+
 
 # ポート番号の設定
 if __name__ == "__main__":
